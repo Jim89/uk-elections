@@ -123,6 +123,7 @@ write.csv(data, "data/uk-election-results-2015.csv")
 } else{
 
 data <- read.csv("data/uk-election-results-2015.csv", row.names=1)
+constituency_names.df <- read.csv("data/constituency_names.csv")
 
 }
 
@@ -271,43 +272,62 @@ uk.map.df$Party <- reorder.factor(uk.map.df$Party,
                                   new.order=as.character(by.seats$Party), order=TRUE)
 detach(package:gdata)
 
+library(magrittr)
+wealth <- read.csv("./data/wealth_data.csv", stringsAsFactors = F)
+names(wealth) %<>% tolower
+names(wealth)[1] <- "Constituency"
+names(wealth)[11] <- "Wealth"
+
+
+mapData <- left_join(uk.map.df, wealth %>% select(Constituency, Wealth), by="Constituency")
 
 
 ### Make the maps
-p <- ggplot(data=uk.map.df,
+norm <- ggplot(data=mapData,
             aes(x=long, y=lat,
-                group=group))
-
-p1 <- p + geom_map(data = uk.map.df,
-                   map = uk.map.df,
-                   aes(map_id=id, x=long, y=lat, group=group, fill=Party),
-                   color="white", size=0.2)
-
-p2 <- p1 + geom_map(data=subset(uk.map.df, Constituency=="York Central"),
+                group=group)) + geom_map(data = mapData,
+                   map = mapData,
+                   aes(map_id=id, x=long, y=lat, group=group, fill=Party),#, alpha = Wealth),
+                   color="white", size=0.2)+ geom_map(data=subset(uk.map.df, Constituency=="York Central"),
                     map=subset(uk.map.df, Constituency=="York Central"),
                     aes(map_id=id, x=long, y=lat, group=group, fill=Party),
-                    color="white", size=0.2)
-
-p3 <- p2 + scale_fill_manual(values=gb.colors$party.color)
-
-pdf(file="figures/uk-2015-winners.pdf", height=15, width=10)
-
-p4 <- p3 + coord_map(projection="albers", at0 = 51, lat1 = 0) + labs(x=NULL, y=NULL, fill="") +
+                    color="white", size=0.2) + scale_fill_manual(values=gb.colors$party.color)+ coord_map(projection="albers", at0 = 51, lat1 = 0) + labs(x=NULL, y=NULL, fill="") +
     theme(panel.grid=element_blank(),
           axis.ticks=element_blank(),
           panel.border=element_blank(),
           axis.text=element_blank(),
-          legend.position=c(0.8, 0.55))
-
-print(p4)
-credit()
-dev.off()
+          legend.position="right")
 
 ggsave("figures/uk-2015-winners.png",
-       p4,
+       norm,
        height=15,
        width=10,
        dpi=300)
+
+
+wealth <- ggplot(data=mapData,
+            aes(x=long, y=lat,
+                group=group)) + geom_map(data = mapData,
+                   map = mapData,
+                   aes(map_id=id, x=long, y=lat, group=group, fill=Party, alpha = Wealth),
+                   color="white", size=0.2)+ geom_map(data=subset(uk.map.df, Constituency=="York Central"),
+                    map=subset(uk.map.df, Constituency=="York Central"),
+                    aes(map_id=id, x=long, y=lat, group=group, fill=Party),
+                    color="white", size=0.2) + scale_fill_manual(values=gb.colors$party.color)+ coord_map(projection="albers", at0 = 51, lat1 = 0) + labs(x=NULL, y=NULL, fill="") +
+    theme(panel.grid=element_blank(),
+          axis.ticks=element_blank(),
+          panel.border=element_blank(),
+          axis.text=element_blank(),
+          legend.position="right")
+
+ggsave("figures/uk-2015-winners_wealth.png",
+       wealth,
+       height=15,
+       width=10,
+       dpi=300)
+
+
+
 
 
 ### Let's see who came in second.
