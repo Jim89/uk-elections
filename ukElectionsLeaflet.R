@@ -264,10 +264,12 @@ if (!file.exists("data/uk-election-results-2015.csv")) {
                               "</strong>",
                               "<br><strong>MP: </strong>",
                               uk.map@data$mp,
+                              " (",uk.map@data$party, ")",
                               "<br><strong>Median Income: </strong>&pound",
-                              uk.map@data$income,
+                              format(uk.map@data$income, big.mark = ","),
                               "<br><strong>Businesses per 10,000 people: </strong>",
-                              uk.map@data$businesses.per.10k)
+                              format(round(uk.map@data$businesses.per.10k),
+                                     big.mark = ","))
 
 
 # create the leaflet plot ------------------------------------------------------
