@@ -20,7 +20,8 @@
   }
 
 # get the results
-  get.constituency.results <- function(constituency){
+  get.constituency.results <- function (constituency) {
+    library(rvest)
 
     name <- constituency %>%
             html_nodes(".constituency-title__title") %>%
@@ -68,11 +69,11 @@
 # get the data -----------------------------------------------------------------
 #  ff we've done all this already, don't do it again
 if ( !file.exists("data/constituency_names.csv")) {
-
-    constituencies <- read_html("http://www.bbc.com/news/politics/constituencies") %>%
+      library(rvest)
+    constituencies <- html("http://www.bbc.com/news/politics/constituencies") %>%
                       html_nodes("td , .az-table__row th")
 
-    constituency_names <- read_html("http://www.bbc.com/news/politics/constituencies") %>%
+    constituency_names <- html("http://www.bbc.com/news/politics/constituencies") %>%
                           html_nodes(".az-table")
 
     constituency_urls <- constituencies %>%
@@ -216,8 +217,8 @@ if (!file.exists("data/uk-election-results-2015.csv")) {
 
 # election results with wealth data (for ease of use later) --------------------
   winners <- left_join(by.mps, constituency_names.df,
-                       by = c("Constituency" = "Constituency")) %>%
-             left_join(uk.colors, by = c("Party" = "Party")) %>%
+                       by = c("Constituency" = "Constituency")) %>% #View
+             left_join(uk.colors, by = c("Party" = "Party")) %>% #View
              left_join(wealth, by = c("id" = "id")) %>%
              setNames(tolower(names(.))) %>%
              select(constituency.x, party, candidate, votes, vote.share, swing,
@@ -225,7 +226,7 @@ if (!file.exists("data/uk-election-results-2015.csv")) {
                     pension.claim.rate, good.health.rate, prop.non.white,
                     median.house.price, employment.rate, unemployment.rate,
                     percentage.tax.credit, median.income, businesses.per.10k) %>%
-            rename(constituency = constituency.x) %>%
+            rename(constituency = constituency.x)
 
 # tidy up constituency to be a character not a factor
   winners$constituency %<>% as.character
